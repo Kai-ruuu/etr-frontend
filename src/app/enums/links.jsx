@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Wrench, LucideBriefcase, Verified, Users, User, GraduationCap, Building } from 'lucide-react'
+import { LayoutDashboard, Building2, Wrench, LucideBriefcase, Verified, Users, User, GraduationCap, Building, Settings, Archive, Settings2Icon, School } from 'lucide-react'
 
 export const sidebarLinks = {
    sysad: [
@@ -7,6 +7,12 @@ export const sidebarLinks = {
          icon: LayoutDashboard,
          label: 'Dashboard',
          path: '/sysad'
+      },
+      { // Manage Schools
+         isLink: true,
+         icon: School,
+         label: 'Schools',
+         path: '#'
       },
       { // Management
          isLink: false, // Folder-like
@@ -45,7 +51,51 @@ export const sidebarLinks = {
                path: '/sysad/manage-peso'
             },
          ]
-      }
+      },
+      { // Settings
+         isLink: false,
+         icon: Settings,
+         label: 'Settings',
+         links: [
+            { // Manage Own Accounts
+               isLink: true,
+               icon: User,
+               label: 'Account',
+               path: '#'
+            },
+            { // Manage Archives
+               isLink: false,
+               icon: Archive,
+               label: 'Archives',
+               links: [
+                  { // Manage Archived Schools
+                     isLink: true,
+                     icon: School,
+                     label: 'Schools',
+                     path: '#'
+                  },
+                  { // Manage Archived Companies
+                     isLink: true,
+                     icon: Building2,
+                     label: 'Companies',
+                     path: '#'
+                  },
+                  { // Manage Archived Job Posts
+                     isLink: true,
+                     icon: LucideBriefcase,
+                     label: 'Job Posts',
+                     path: '#'
+                  },
+               ]
+            },
+            { // Manage System
+               isLink: true,
+               icon: Settings2Icon,
+               label: 'System',
+               path: '#'
+            },
+         ]
+      },
    ],
    peso: [
       {
@@ -59,6 +109,19 @@ export const sidebarLinks = {
          icon: Verified,
          label: 'Verify Companies',
          path: '/peso/verify-companies'
+      },
+      { // Settings
+         isLink: false,
+         icon: Settings,
+         label: 'Settings',
+         links: [
+            { // Manage Own Accounts
+               isLink: true,
+               icon: User,
+               label: 'Account',
+               path: '#'
+            },
+         ]
       },
    ]
 }
