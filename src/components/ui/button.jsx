@@ -15,7 +15,7 @@ export function Button({ children, className = "", variant = "default", size = "
   }
 
   return (
-    <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+    <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className} cursor-pointer`} {...props}>
       {children}
     </button>
   )

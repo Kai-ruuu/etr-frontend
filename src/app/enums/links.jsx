@@ -12,7 +12,7 @@ export const sidebarLinks = {
          isLink: true,
          icon: School,
          label: 'Schools',
-         path: '#'
+         path: '/sysad/manage-schools'
       },
       { // Management
          isLink: false, // Folder-like
@@ -68,7 +68,7 @@ export const sidebarLinks = {
                      isLink: true,
                      icon: School,
                      label: 'Schools',
-                     path: '#'
+                     path: '/sysad/manage-archived-schools'
                   },
                   { // Manage Archived Companies
                      isLink: true,

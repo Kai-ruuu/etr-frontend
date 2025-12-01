@@ -14,6 +14,7 @@ import SysadCompaniesPage from "../../pages/user/sysad/SysadCompaniesPage"
 import SysadJobPostPage from "../../pages/user/sysad/SysadJobPostPage"
 import SysadManageDeanPage from "../../pages/user/sysad/SysadManageDeanPage"
 import SysadManagePesoPage from "../../pages/user/sysad/SysadManagePesoPage"
+import SysadManageSchoolsPage from "../../pages/user/sysad/SysadManageSchoolsPage"
 import PesoDashboardPage from "../../pages/user/peso/PesoDashboardPage"
 import PesoCompanyVerificationPage from "../../pages/user/peso/PesoCompanyVerificationPage"
 
@@ -37,10 +38,12 @@ export const router = createBrowserRouter([
       ),
       children: [
          { index: true, element: <SysadDashboardPage/> },
+         { path: 'manage-schools', element: <SysadManageSchoolsPage archived={false}/> },
          { path: 'manage-companies', element: <SysadCompaniesPage/> },
          { path: 'manage-job-posts', element: <SysadJobPostPage/> },
          { path: 'manage-dean', element: <SysadManageDeanPage/> },
          { path: 'manage-peso', element: <SysadManagePesoPage/> },
+         { path: 'manage-archived-schools', element: <SysadManageSchoolsPage archived={true}/> },
       ]
    },
    {
