@@ -2,7 +2,8 @@ import { useAuth } from "../context/auth/useAuthContext"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import { Button } from "./ui/button"
 import { getRoleLinks } from "../app/enums/links"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 
 export default function Sidebar() {
   const navigate = useNavigate()
@@ -10,8 +11,14 @@ export default function Sidebar() {
   const { user, signoutUser } = useAuth()
 
   const handleLogout = async () => await signoutUser(navigate)
+  const [collapsedLinks, setCollapsedLinks] = useState([])
 
-  const renderLinks = roleLinks => {
+  const handleCollapse = (isCollapsed, linkId) => {
+    if (isCollapsed) setCollapsedLinks(collapsedLinks.filter(collapsedLinkId => collapsedLinkId !== linkId))
+    else setCollapsedLinks([...collapsedLinks, linkId])
+  }
+
+  const renderLinks = (roleLinks, level = 0) => {
     return roleLinks.map((link, index) => {
       if (link.isLink) {
         const isCurrent = location.pathname === link.path
@@ -30,15 +37,22 @@ export default function Sidebar() {
           </Link>
         )
       } else {
+        const linkId = `${level}_${index}`
+        const isCollapsed = collapsedLinks.includes(linkId)
+
         return (
           <div
           key={index}
           className={`pl-4 flex flex-col`}>
-            <div className="flex items-center py-2 gap-x-4">
-              <link.icon className='w-5 text-gray-700'/>
-              <span className="text-gray-700">{link.label}</span>
+            <div
+            onClick={() => handleCollapse(isCollapsed, linkId)}
+            className="flex items-center py-2 gap-x-4 cursor-pointer">
+              {isCollapsed
+                ? <ChevronRight className='w-5 text-gray-700'/>
+                : <ChevronDown className='w-5 text-gray-700'/>}
+              <span className="select-none text-gray-700">{link.label}</span>
             </div>
-            {renderLinks(link.links)}
+            {!isCollapsed && renderLinks(link.links, level + 1)}
           </div>
         )
       }
@@ -48,7 +62,7 @@ export default function Sidebar() {
   if (!user) return <></>
 
   return (
-    <aside className="flex flex-col w-80 bg-white border-r border-gray-200">
+    <aside className="flex flex-col w-90 bg-white border-r border-gray-200">
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-blue-600">Admin Portal</h1>
       </div>
