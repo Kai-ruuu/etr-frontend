@@ -2,7 +2,7 @@ import { useAuth } from "../context/auth/useAuthContext"
 import { useNavigate, useLocation, Link } from "react-router-dom"
 import { Button } from "./ui/button"
 import { getRoleLinks } from "../app/enums/links"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 
 export default function Sidebar() {
