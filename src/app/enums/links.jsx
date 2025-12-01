@@ -16,7 +16,6 @@ export const sidebarLinks = {
       },
       { // Management
          isLink: false, // Folder-like
-         icon: Wrench,
          label: 'Manage Companies & Job Posts',
          links: [
             { // Manage Companies
@@ -35,7 +34,6 @@ export const sidebarLinks = {
       },
       { // Account Management
          isLink: false,
-         icon: Users,
          label: 'Manage Accounts',
          links: [
             { // Manage Dean Accounts
@@ -54,7 +52,6 @@ export const sidebarLinks = {
       },
       { // Settings
          isLink: false,
-         icon: Settings,
          label: 'Settings',
          links: [
             { // Manage Own Accounts
@@ -65,7 +62,6 @@ export const sidebarLinks = {
             },
             { // Manage Archives
                isLink: false,
-               icon: Archive,
                label: 'Archives',
                links: [
                   { // Manage Archived Schools
@@ -112,7 +108,6 @@ export const sidebarLinks = {
       },
       { // Settings
          isLink: false,
-         icon: Settings,
          label: 'Settings',
          links: [
             { // Manage Own Accounts
