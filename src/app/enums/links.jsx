@@ -58,7 +58,7 @@ export const sidebarLinks = {
                isLink: true,
                icon: User,
                label: 'Account',
-               path: '#'
+               path: '/sysad/account'
             },
             { // Manage Archives
                isLink: false,
@@ -74,13 +74,13 @@ export const sidebarLinks = {
                      isLink: true,
                      icon: Building2,
                      label: 'Companies',
-                     path: '#'
+                     path: '/sysad/archived-companies'
                   },
                   { // Manage Archived Job Posts
                      isLink: true,
                      icon: LucideBriefcase,
                      label: 'Job Posts',
-                     path: '#'
+                     path: '/sysad/archived-job-posts'
                   },
                ]
             },
@@ -88,7 +88,7 @@ export const sidebarLinks = {
                isLink: true,
                icon: Settings2Icon,
                label: 'System',
-               path: '#'
+               path: '/sysad/system'
             },
          ]
       },
@@ -114,7 +114,7 @@ export const sidebarLinks = {
                isLink: true,
                icon: User,
                label: 'Account',
-               path: '#'
+               path: '/peso/account'
             },
          ]
       },
