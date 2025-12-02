@@ -15,8 +15,13 @@ import SysadJobPostPage from "../../pages/user/sysad/SysadJobPostPage"
 import SysadManageDeanPage from "../../pages/user/sysad/SysadManageDeanPage"
 import SysadManagePesoPage from "../../pages/user/sysad/SysadManagePesoPage"
 import SysadManageSchoolsPage from "../../pages/user/sysad/SysadManageSchoolsPage"
+import SysadAccountPage from "../../pages/user/sysad/SysadAccountPage"
+import SysadArchivedCompaniesPage from "../../pages/user/sysad/SysadArchivedCompaniesPage"
+import SysadArchivedJobPostsPage from "../../pages/user/sysad/SysadArchivedJobPostsPage"
+import SysadSystemPage from "../../pages/user/sysad/SysadSystemPage"
 import PesoDashboardPage from "../../pages/user/peso/PesoDashboardPage"
 import PesoCompanyVerificationPage from "../../pages/user/peso/PesoCompanyVerificationPage"
+import PesoAccountPage from "../../pages/user/peso/PesoAccountPage"
 
 export const router = createBrowserRouter([
    { path: '/', element: <Navigate to="/auth" replace /> },
@@ -44,6 +49,10 @@ export const router = createBrowserRouter([
          { path: 'manage-dean', element: <SysadManageDeanPage/> },
          { path: 'manage-peso', element: <SysadManagePesoPage/> },
          { path: 'manage-archived-schools', element: <SysadManageSchoolsPage archived={true}/> },
+         { path: 'account', element: <SysadAccountPage/> },
+         { path: 'archived-companies', element: <SysadArchivedCompaniesPage/> },
+         { path: 'archived-job-posts', element: <SysadArchivedJobPostsPage/> },
+         { path: 'system', element: <SysadSystemPage/> },
       ]
    },
    {
@@ -56,6 +65,7 @@ export const router = createBrowserRouter([
       children: [
          { index: true, element: <PesoDashboardPage/> },
          { path: 'verify-companies', element: <PesoCompanyVerificationPage/> },
+         { path: 'account', element: <PesoAccountPage/> },
       ]
    }
 ])
