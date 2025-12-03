@@ -1,37 +1,43 @@
 import { useEffect, useState } from "react"
+import { School, Search, X } from 'lucide-react'
 import { Button } from "../../../components/ui/button"
-import { addSchool, archiveRestoreSchool, getSchools, renameSchool } from "../../../app/services/user/sysad/schoolService"
 import { Card } from "../../../components/ui/card"
 import { Label } from "../../../components/ui/label"
 import { Input } from "../../../components/ui/input"
+import { Select, SelectItem } from "../../../components/ui/select"
+import { addSchool, archiveRestoreSchool, getSchools, renameSchool, sortSchools } from "../../../app/services/user/sysad/schoolService"
 
 const SysadManageSchoolsPage = ({ archived = false }) => {
-   const [pageInfo, setPageInfo] = useState({
-      page: 1,
-      totalPages: 1,
-   })
+   const [pageInfo, setPageInfo] = useState({ page: 1, totalPages: 1 })
+   const [order, setOrder] = useState('a-z')
+   const [search, setSearch] = useState('')
+   const [searched, setSearched] = useState(false)
    const [schools, setSchools] = useState(null)
    const [editingInfo, setEditingInfo] = useState(null)
    const [showForm, setShowForm] = useState(false)
    const [formData, setFormData] = useState({ name: '' })
 
    useEffect(() => {
-      getSchools(setSchools, setPageInfo, 1, archived)
+      getSchools(setSchools, setPageInfo, 1, archived, '')
    }, [location.pathname])
    
    return (
       <div className="space-y-6">
-         <div className="flex items-center justify-between">
+         <div className="flex items-center justify-between bg-white">
             <div>
                <h1 className="text-3xl font-bold tracking-tight">{archived ? 'Manage Archived Schools' : 'Manage Schools'}</h1>
-               <p className="text-gray-500 mt-1">Manage schools</p>
             </div>
-            {!archived && <Button onClick={() => {
-               setEditingInfo(null)
-               setShowForm(!showForm)
-            }}>
-               {showForm ? 'Cancel' : 'Add School'}
-            </Button>}
+            {!archived && (
+               <Button
+                  variant={showForm ? 'secondary' : 'default'}
+                  onClick={() => {
+                     setEditingInfo(null)
+                     setShowForm(!showForm)
+                  }}
+               >
+                  {showForm ? 'Cancel' : 'Add School'}
+               </Button>
+            )}
          </div>
 
          {showForm && (
@@ -44,7 +50,7 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
                   e.preventDefault()
 
                   if (editingInfo) await renameSchool(schools, setSchools, setEditingInfo, setShowForm, editingInfo.id, formData)
-                  else await addSchool(schools, setSchools, setEditingInfo, setShowForm, formData)
+                  else await addSchool(archived, schools, setSchools, pageInfo, setPageInfo, setEditingInfo, setShowForm, formData)
                }} className="space-y-4">
                   <div className="space-y-2">
                      <Label htmlFor="name">School Name</Label>
@@ -67,6 +73,60 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
             </Card>
          )}
 
+         <Card className="p-4 flex items-center gap-x-4">
+            <div className="flex items-center gap-x-2">
+               Order
+               <Select
+                  value={order}
+                  onChange={e => setOrder(e.target.value)}
+               >
+                  <SelectItem value={'a-z'}>Ascending</SelectItem>
+                  <SelectItem value={'z-a'}>Descending</SelectItem>
+               </Select>
+            </div>
+            <div className="grow flex items-center gap-x-4">
+               <Input
+                  value={search}
+                  onChange={e => {
+                     setSearch(e.target.value)
+                  }}
+                  placeholder='Search School Names'
+                  required
+                  className='grow'
+               />
+               <div className="flex items-center gap-x-2">
+                  { search && <Button
+                     variant="secondary"
+                     className="flex items-center gap-x-1"
+                     type='submit'
+                     onClick={async () => {
+                        setSearch('')
+
+                        if (searched) {
+                           setSearched(false)
+                           await getSchools(setSchools, setPageInfo, 1, archived, '')
+                        }
+                     }}
+                  >
+                     <X className="w-5 pr-1" />
+                     Cancel
+                  </Button> }
+                  <Button
+                     variant="default"
+                     className="flex items-center gap-x-1"
+                     type='submit'
+                     onClick={async () => {
+                        setSearched(true)
+                        await getSchools(setSchools, setPageInfo, 1, archived, search)
+                     }}
+                  >
+                     <Search className="w-5 pr-1" />
+                     Search
+                  </Button>
+               </div>
+            </div>
+         </Card>
+
          <Card className="overflow-hidden">
             <div className="overflow-x-auto">
                <table className="w-full">
@@ -84,10 +144,13 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
                      </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                     {(schools ?? []).map(school => (
+                     {sortSchools(schools ?? [], order).map(school => (
                         <tr key={school.id} className="hover:bg-gray-50">
                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-gray-900 flex items-center">
+                                 <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                    <School className="h-5 w-5 text-gray-500" />
+                                 </div>
                                  {school.name}
                               </div>
                            </td>
@@ -96,9 +159,16 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
                            </td>
                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <div className="flex justify-end space-x-2">
-                                 {!archived && <Button
+                                 <Button
                                     size="sm"
                                     variant="outline"
+                                    onClick={async () => await archiveRestoreSchool(schools, setSchools, pageInfo, setPageInfo, archived, school.id)}
+                                 >
+                                    {archived ? 'Restore' : 'Archive'}
+                                 </Button>
+                                 {!archived && <Button
+                                    size="sm"
+                                    variant="default"
                                     onClick={() => {
                                        setFormData({ name: school.name })
                                        setEditingInfo(school)
@@ -107,14 +177,6 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
                                  >
                                     Rename
                                  </Button>}
-                                 <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={async () => await archiveRestoreSchool(schools, setSchools, archived, school.id)}
-                                    className="text-red-500"
-                                 >
-                                    {archived ? 'Restore' : 'Archive'}
-                                 </Button>
                               </div>
                            </td>
                         </tr>
@@ -124,35 +186,40 @@ const SysadManageSchoolsPage = ({ archived = false }) => {
             </div>
             </Card>
 
-         {(schools ?? []).length === 0 && (
-            <Card className="p-8 text-center">
-               <p className="text-gray-500">There are no {archived ? 'archived' : 'active'} schools yet.</p>
-            </Card>
-         )}
-
-         {(schools ?? []).length > 0 && (
-            <Card className="w-full flex items-center justify-between p-4">
-               <p>Page {pageInfo.page} out of {pageInfo.totalPages}</p>
-               <div>
-                  {pageInfo.page > 1 && (
-                     <Button
-                        size="md"
-                        variant="outline"
-                     >
-                        Prev
-                     </Button>
-                  )}
-                  {pageInfo.page < pageInfo.totalPages && (
-                     <Button
-                        size="md"
-                        variant="outline"
-                     >
-                        Next
-                     </Button>
-                  )}
-               </div>
-            </Card>
-         )}
+         {(schools ?? []).length <= 0 
+            ? (
+               <Card className="p-8 text-center">
+                  {search
+                  ? <p className="text-gray-500">There are no matching schools for "{search}".</p>
+                  : <p className="text-gray-500">There are no {archived ? 'archived' : 'active'} schools yet.</p>}
+               </Card>
+            )
+            : (
+               <Card className="w-full flex items-center justify-between p-4">
+                  <p>Page {pageInfo.page} out of {pageInfo.totalPages}</p>
+                  <div className="flex items-center gap-x-2">
+                     {pageInfo.page > 1 && (
+                        <Button
+                           size="md"
+                           variant="secondary"
+                           onClick={async () => await getSchools(setSchools, setPageInfo, pageInfo.page - 1, archived, '')}
+                        >
+                           Prev
+                        </Button>
+                     )}
+                     {pageInfo.page < pageInfo.totalPages && (
+                        <Button
+                           size="md"
+                           variant="secondary"
+                           onClick={async () => await getSchools(setSchools, setPageInfo, pageInfo.page + 1, archived, '')}
+                        >
+                           Next
+                        </Button>
+                     )}
+                  </div>
+               </Card>
+            )
+         }
       </div>
    )
 }

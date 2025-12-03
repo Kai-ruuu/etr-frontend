@@ -78,14 +78,11 @@ const SysadArchivedJobPostsPage = () => {
   )
 
   const handleRestore = (jobPostId) => {
-    // Handle restore logic
-    console.log('Restoring job post:', jobPostId)
     setArchivedJobPosts(prev => prev.filter(jobPost => jobPost.id !== jobPostId))
   }
 
   const handlePermanentDelete = (jobPostId) => {
     if (window.confirm('Are you sure you want to permanently delete this job post? This action cannot be undone.')) {
-      console.log('Permanently deleting job post:', jobPostId)
       setArchivedJobPosts(prev => prev.filter(jobPost => jobPost.id !== jobPostId))
     }
   }

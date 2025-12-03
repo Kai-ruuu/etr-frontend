@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
          throw new Error(data.detail ?? "Failed to fetch user");
          }
       } catch (e) {
-         console.log(e);
+         console.error(e);
          setUser(null);
       }
    }

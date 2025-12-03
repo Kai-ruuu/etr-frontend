@@ -45,14 +45,10 @@ const SysadAccountPage = () => {
       alert('New password and confirm password do not match')
       return
     }
-    // Handle password change logic here
-    console.log('Password change submitted:', passwordData)
   }
 
   const handleNotificationSubmit = (e) => {
     e.preventDefault()
-    // Handle notification settings save
-    console.log('Notification settings saved:', notifications)
   }
 
   return (

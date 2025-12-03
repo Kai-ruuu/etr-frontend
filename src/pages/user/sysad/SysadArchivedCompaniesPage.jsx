@@ -60,13 +60,11 @@ const SysadArchivedCompaniesPage = () => {
 
   const handleRestore = (companyId) => {
     // Handle restore logic
-    console.log('Restoring company:', companyId)
     setArchivedCompanies(prev => prev.filter(company => company.id !== companyId))
   }
 
   const handlePermanentDelete = (companyId) => {
     if (window.confirm('Are you sure you want to permanently delete this company? This action cannot be undone.')) {
-      console.log('Permanently deleting company:', companyId)
       setArchivedCompanies(prev => prev.filter(company => company.id !== companyId))
     }
   }

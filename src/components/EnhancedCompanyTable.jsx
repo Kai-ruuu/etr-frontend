@@ -1,45 +1,70 @@
 import { Button } from "./ui/button"
 import { Card } from "./ui/card"
 import { Badge } from "./ui/badge"
-import { Eye, Edit, Trash2, Download, FileText, Building2 } from "lucide-react"
+import { FileText, Building2 } from "lucide-react"
 import { useState } from "react"
+import { apiFilePath, apiPath } from "../app/utils/api"
+import { archiveRestoreCompany } from "../app/services/user/sysad/companyService"
 
 // Move DocumentRow outside the component to avoid creating during render
-const DocumentRow = ({ label, file, filename }) => (
-  <div className="flex items-center justify-between py-2 border-b border-gray-100">
-    <span className="text-sm font-medium text-gray-700">{label}</span>
-    {file ? (
-      <div className="flex items-center space-x-2">
-        <FileText className="h-4 w-4 text-blue-500" />
-        <span className="text-xs text-gray-500">{file.name}</span>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            if (file) {
-              const url = URL.createObjectURL(file)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = filename
-              document.body.appendChild(a)
-              a.click()
-              document.body.removeChild(a)
-              URL.revokeObjectURL(url)
-            }
-          }}
-          className="h-6 px-2"
-        >
-          <Download className="h-3 w-3" />
-        </Button>
-      </div>
-    ) : (
-      <span className="text-xs text-gray-400">Not uploaded</span>
+const DocumentRow = ({ viewedDocument, setViewedDocument, label, filePath, filename }) => (
+  <div className="flex flex-col items-stretch py-2 border-b border-gray-100">
+    <div className="flex items-center justify-between py-2">
+      <span className="text-sm font-medium text-gray-700">{label}</span>
+      {filename ? (
+        <div className="flex items-center space-x-2">
+          <FileText className="h-4 w-4 text-blue-500" />
+          <span className="text-xs text-gray-500">{filename}</span>
+          <Button
+            size="sm"
+            variant={viewedDocument === label ? 'default' : 'secondary'}
+            onClick={() => {
+              if (filename) setViewedDocument(viewedDocument === label ? null : label)
+            }}
+          >
+            Preview
+          </Button>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={async () => {
+              if (filename) {
+                const res = await fetch(apiFilePath(`/${filePath}/${filename}`))
+
+                if (!res.ok) throw new Error('Failed to download')
+
+                const blob = await res.blob()
+                const url = URL.createObjectURL(blob)
+
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                a.click()
+
+                URL.revokeObjectURL(url)
+              }
+            }}
+          >
+            Download
+          </Button>
+        </div>
+      ) : (
+        <span className="text-xs text-gray-400">Not uploaded</span>
+      )}
+    </div>
+    {viewedDocument === label && (
+      <iframe
+        src={apiFilePath(`/${filePath}/${filename}`)}
+        className="h-dvh"
+      >  
+      </iframe>
     )}
   </div>
 )
 
-export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onView }) {
+export default function EnhancedCompanyTable({ companies, setCompanies, pageInfo, setPageInfo, setEditingInfo, setShowForm, archived }) {
   const [viewingCompany, setViewingCompany] = useState(null)
+  const [viewedDocument, setViewedDocument] = useState(null)
 
   const getStatusBadge = (status) => {
     const variants = {
@@ -57,7 +82,6 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
 
   const handleViewDetails = (company) => {
     setViewingCompany(company)
-    if (onView) onView(company)
   }
 
   const handleBackdropClick = (e) => {
@@ -83,9 +107,6 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Documents
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vacancies
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -93,25 +114,15 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {companies.map((company) => {
-                const documentCount = [
-                  company.letterOfIntent,
-                  company.companyProfile,
-                  company.businessPermit,
-                  company.sec,
-                  company.dtiCdaReg,
-                  company.registryOfEstablishment,
-                  company.certificationFromDole,
-                  company.certificationNoPendingCase,
-                  company.philJobNetReg
-                ].filter(Boolean).length
+                const documentCount = Object.entries(company.documents).filter(([key, value]) => (value !== null && key !== 'logo_filename')).length
 
                 return (
                   <tr key={company.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {company.logo ? (
+                        {company.documents?.logo_filename ? (
                           <img
-                            src={URL.createObjectURL(company.logo)}
+                            src={apiFilePath('/company-logo/' + company.documents?.logo_filename)}
                             alt={`${company.name} logo`}
                             className="h-10 w-10 rounded-full object-cover mr-3"
                           />
@@ -120,13 +131,8 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                             <Building2 className="h-5 w-5 text-gray-500" />
                           </div>
                         )}
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {company.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            ID: {company.id}
-                          </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {company.name}
                         </div>
                       </div>
                     </td>
@@ -134,16 +140,8 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                       {getStatusBadge(company.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {documentCount}/9 documents
-                      </div>
                       <div className="text-xs text-gray-500">
-                        {documentCount === 9 ? 'Complete' : 'Incomplete'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
-                        {company.vacancies || 0} positions
+                        {documentCount === 9 ? 'Complete' : 'Incomplete'} ({documentCount}/9)
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -151,6 +149,13 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={async () => await archiveRestoreCompany(companies, setCompanies, pageInfo, setPageInfo, archived, company.id)}
+                        >
+                          {archived ? 'Restore' : 'Archive'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
                           onClick={() => handleViewDetails(company)}
                           className="text-blue-600 hover:text-blue-700"
                         >
@@ -158,19 +163,14 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => onEdit(company.id)}
+                          variant="default"
+                          onClick={() => {
+                            setShowForm(true)
+                            setEditingInfo(company)
+                          }}
                           className="text-gray-600 hover:text-gray-700"
                         >
                           Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onDelete(company.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete
                         </Button>
                       </div>
                     </td>
@@ -195,9 +195,9 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  {viewingCompany.logo ? (
+                  {viewingCompany.documents?.logo_filename ? (
                     <img
-                      src={URL.createObjectURL(viewingCompany.logo)}
+                      src={apiFilePath('/company-logo/' + viewingCompany.documents?.logo_filename)}
                       alt={`${viewingCompany.name} logo`}
                       className="h-16 w-16 rounded-full object-cover"
                     />
@@ -208,7 +208,6 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
                   )}
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">{viewingCompany.name}</h2>
-                    <p className="text-gray-500">Company ID: {viewingCompany.id}</p>
                   </div>
                 </div>
                 <Button
@@ -223,64 +222,71 @@ export default function EnhancedCompanyTable({ companies, onEdit, onDelete, onVi
             <div className="p-6 space-y-6">
               {/* Documents Section */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Required Documents</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Submitted Requirements</h3>
                 <div className="space-y-1">
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Letter of Intent (Address to Mayor)"
-                    file={viewingCompany.letterOfIntent}
-                    filename={`${viewingCompany.name}_Letter_of_Intent.pdf`}
+                    filePath="letter-of-intent"
+                    filename={viewingCompany.documents.letter_of_intent_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Company Profile"
-                    file={viewingCompany.companyProfile}
-                    filename={`${viewingCompany.name}_Company_Profile.pdf`}
+                    filePath="company-profile"
+                    filename={viewingCompany.documents.company_profile_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Business Permit"
-                    file={viewingCompany.businessPermit}
-                    filename={`${viewingCompany.name}_Business_Permit.pdf`}
+                    filePath="business-permit"
+                    filename={viewingCompany.documents.business_permit_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="SEC"
-                    file={viewingCompany.sec}
-                    filename={`${viewingCompany.name}_SEC.pdf`}
+                    filePath="securities-and-exchange-commission"
+                    filename={viewingCompany.documents.sec_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="DTI/CDA Reg."
-                    file={viewingCompany.dtiCdaReg}
-                    filename={`${viewingCompany.name}_DTI_CDA_Reg.pdf`}
+                    filePath="department-of-trade-and-industries"
+                    filename={viewingCompany.documents.dti_cda_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Registry of Establishment fr. DOLE"
-                    file={viewingCompany.registryOfEstablishment}
-                    filename={`${viewingCompany.name}_Registry_of_Establishment.pdf`}
+                    filePath="registry-of-establishment"
+                    filename={viewingCompany.documents.reg_of_est_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Certification from DOLE Provincial Office"
-                    file={viewingCompany.certificationFromDole}
-                    filename={`${viewingCompany.name}_DOLE_Certification.pdf`}
+                    filePath="dole-certification"
+                    filename={viewingCompany.documents.dole_cert_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Certification of No Pending Case"
-                    file={viewingCompany.certificationNoPendingCase}
-                    filename={`${viewingCompany.name}_No_Pending_Case.pdf`}
+                    filePath="pending-case-certification"
+                    filename={viewingCompany.documents.no_pending_case_cert_filename}
                   />
                   <DocumentRow
+                    viewedDocument={viewedDocument}
+                    setViewedDocument={setViewedDocument}
                     label="Phil-JobNet Reg."
-                    file={viewingCompany.philJobNetReg}
-                    filename={`${viewingCompany.name}_PhilJobNet_Reg.pdf`}
+                    filePath="philjobnet-registration"
+                    filename={viewingCompany.documents.philjob_reg_filename}
                   />
-                </div>
-              </div>
-
-              {/* Vacancies Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Total Number of Vacancies</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-3xl font-bold text-blue-600">{viewingCompany.vacancies || 0}</span>
-                    <span className="text-gray-600">available positions</span>
-                  </div>
                 </div>
               </div>
             </div>

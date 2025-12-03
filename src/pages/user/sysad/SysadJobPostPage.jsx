@@ -98,8 +98,6 @@ const SysadJobPostPage = () => {
             company_id: parseInt(formData.company_id),
             total_vacancies: parseInt(formData.total_vacancies)
          }
-
-         console.log('Job Post Data:', jobPostData)
          
          // Mock API response
          const newJobPost = {
